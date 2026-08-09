@@ -1,12 +1,12 @@
-import Navbar from './Navbar';
+import Sidebar from './Sidebar';
+import Player from './Player';
 
 function Layout({ children }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1">{children}</main>
-      {/* Espacio reservado para el player persistente (features/player) */}
-      <div className="h-20 border-t border-gray-800" />
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <main className="min-h-screen flex-1 pb-[88px]">{children}</main>
+      <Player />
     </div>
   );
 }

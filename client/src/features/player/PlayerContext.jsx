@@ -19,5 +19,6 @@ export function usePlayer() {
   if (!context) {
     throw new Error('usePlayer debe usarse dentro de un PlayerProvider');
   }
-  return context;
+  const { state, dispatch } = context;
+  return { currentTrack: state.currentTrack, isPlaying: state.isPlaying, progress: state.progress, dispatch };
 }
