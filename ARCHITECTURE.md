@@ -227,3 +227,26 @@ Backend y frontend se despliegan por separado dado que son paquetes independient
 en el monorepo. Candidatos a evaluar más adelante: Render/Railway para el backend
 (necesita proceso persistente), Vercel/Netlify para el frontend estático. Esta
 decisión se toma después de tener el proyecto funcionando localmente.
+
+---
+## 11. Nota: cambios de la Spotify Web API (febrero 2026)
+
+Spotify eliminó, para apps en Development Mode, los endpoints `GET
+/artists/{id}/top-tracks` y `GET /browse/new-releases`, entre otros
+(anuncio oficial de Spotify, changelog de febrero 2026). Esto afecta dos
+decisiones de este proyecto:
+
+- **Home:** en lugar de "nuevos lanzamientos" (endpoint no disponible), el
+  Home combina una lista curada de artistas conocidos (IDs fijos definidos
+  en el backend) con una búsqueda por género vía `/search`, para tener
+  contenido siempre disponible más variedad dinámica.
+- **Top tracks de artista:** en lugar del endpoint eliminado, se muestran
+  las canciones del álbum más reciente del artista (vía
+  `getArtistAlbums` + detalle del álbum), etiquetadas como "canciones
+  destacadas" en la UI, no como "top tracks" literal — para no prometer
+  algo que la fuente de datos no garantiza.
+
+Esta decisión demuestra manejo de un caso límite real de integración con
+una API externa: la fuente de datos cambió durante el desarrollo del
+proyecto, y el diseño se adaptó sin comprometer la arquitectura general
+(BFF + servicio centralizado ya absorbe el cambio en un solo lugar).

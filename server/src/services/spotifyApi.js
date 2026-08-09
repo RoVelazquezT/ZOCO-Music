@@ -4,9 +4,7 @@ const BASE_URL = 'https://api.spotify.com/v1';
 
 async function spotifyFetch(path) {
   const token = await getAccessToken();
-  
-  console.log('URL final enviada a Spotify:', `${BASE_URL}${path}`); // ← temporal, para diagnosticar
-
+ 
   let response;
   try {
     response = await fetch(`${BASE_URL}${path}`, {
@@ -45,8 +43,6 @@ export function search(query, types = ['artist', 'track', 'album'], limit = 20) 
     params.append('limit', parsedLimit);
   }
   const urlFinal = `/search?${params.toString()}`;
-  // Imprimimos en tu terminal local para auditar que la URL esté perfecta
-  console.log('🔍 URL limpia enviada a Spotify:', urlFinal);
   return spotifyFetch(urlFinal);
 }
 
@@ -60,4 +56,13 @@ export function getArtistAlbums(id) {
 
 export function getAlbumById(id) {
   return spotifyFetch(`/albums/${id}`);
+}
+
+export function searchArtistsByGenre(genre, limit = 10) {
+  const params = new URLSearchParams({
+    q: `genre:${genre}`,
+    type: 'artist',
+    limit,
+  });
+  return spotifyFetch(`/search?${params.toString()}`);
 }
