@@ -24,5 +24,6 @@ export function useFavorites() {
   if (!context) {
     throw new Error('useFavorites debe usarse dentro de un FavoritesProvider');
   }
-  return context;
+  const { state, dispatch } = context;
+  return { favorites: state.favorites, recentlyPlayed: state.recentlyPlayed, dispatch };
 }
