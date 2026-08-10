@@ -35,10 +35,19 @@ function ArtistPage() {
 
   const artist = data?.artist;
   const albumItems = data?.albums?.items ?? [];
+  const albumsTotal = data?.albums?.total ?? albumItems.length;
   const featuredAlbumId = useMemo(
     () => pickFeaturedAlbum(data?.albums?.items)?.id ?? null,
     [data]
   );
+  const groupedAlbums = useMemo(() => {
+    const items = data?.albums?.items ?? [];
+    return {
+      album: items.filter((item) => item.album_type === 'album'),
+      single: items.filter((item) => item.album_type === 'single'),
+      compilation: items.filter((item) => item.album_type === 'compilation'),
+    };
+  }, [data]);
 
   const {
     status: featuredStatus,
@@ -69,17 +78,31 @@ function ArtistPage() {
     }
   }
 
-  function handlePlayTrack(track) {
-    if (!featuredAlbum) return;
-    const trackConAlbum = {
+  function enrichTrack(track) {
+    return {
       ...track,
       album: { images: featuredAlbum.images, name: featuredAlbum.name },
     };
+  }
+
+  function handlePlayTrack(track) {
+    if (!featuredAlbum) return;
+    const trackConAlbum = enrichTrack(track);
     playerDispatch({ type: 'SET_TRACK', payload: trackConAlbum });
     playerDispatch({ type: 'PLAY' });
+    favoritesDispatch({ type: 'ADD_TO_RECENT', payload: trackConAlbum });
+  }
+
+  function toggleTrackFavorite(track) {
+    const isTrackFavorite = favorites.some((item) => item.id === track.id);
+    if (isTrackFavorite) {
+      favoritesDispatch({ type: 'REMOVE_FAVORITE', payload: track.id });
+      return;
+    }
+    if (!featuredAlbum) return;
     favoritesDispatch({
-      type: 'ADD_TO_RECENT',
-      payload: { id: track.id, name: track.name, imageUrl: featuredAlbum.images?.[0]?.url },
+      type: 'ADD_FAVORITE',
+      payload: { ...enrichTrack(track), subtitle: 'Canción', variant: 'track' },
     });
   }
 
@@ -158,14 +181,49 @@ function ArtistPage() {
       </header>
 
       {/* Álbumes */}
-      <section className="space-y-5">
-        <h2 className="text-xl font-semibold">Álbumes</h2>
+      <section className="space-y-8">
+        <h2 className="text-xl font-semibold">
+          Álbumes{albumsTotal > 0 ? ` (${albumsTotal})` : ''}
+        </h2>
         {albumItems.length > 0 ? (
-          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
-            {albumItems.map((album, i) => (
-              <AlbumCard key={album.id} album={album} index={i} />
-            ))}
-          </div>
+          <>
+            {groupedAlbums.album.length > 0 && (
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Álbumes
+                </h3>
+                <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
+                  {groupedAlbums.album.map((album, i) => (
+                    <AlbumCard key={album.id} album={album} index={i} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {groupedAlbums.single.length > 0 && (
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Singles
+                </h3>
+                <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
+                  {groupedAlbums.single.map((album, i) => (
+                    <AlbumCard key={album.id} album={album} index={i} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {groupedAlbums.compilation.length > 0 && (
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Compilaciones
+                </h3>
+                <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
+                  {groupedAlbums.compilation.map((album, i) => (
+                    <AlbumCard key={album.id} album={album} index={i} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <EmptyState message="Este artista todavía no tiene álbumes disponibles." />
         )}
@@ -197,6 +255,8 @@ function ArtistPage() {
                 showIndex={false}
                 isPlaying={track.id === currentTrack?.id && playerIsPlaying}
                 onPlay={handlePlayTrack}
+                isFavorite={favorites.some((item) => item.id === track.id)}
+                onToggleFavorite={toggleTrackFavorite}
               />
             ))}
           </div>

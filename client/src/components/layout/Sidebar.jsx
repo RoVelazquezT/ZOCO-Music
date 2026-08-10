@@ -1,12 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, Home, Search, Disc3 } from 'lucide-react';
+import { Home, Search, Disc3 } from 'lucide-react';
 
 import { cn } from '../../lib/utils';
 
 const navItems = [
   { label: 'Inicio', to: '/', icon: Home },
   { label: 'Buscar', to: '/search', icon: Search },
-  { label: 'Favoritos', to: '/favorites', icon: Heart },
 ];
 
 function Sidebar() {

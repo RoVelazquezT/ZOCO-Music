@@ -12,6 +12,19 @@ import ErrorState from '../components/ui/ErrorState';
 import EmptyState from '../components/ui/EmptyState';
 import TrackRow from '../features/track/TrackRow';
 
+const ALBUM_TYPE_LABELS = {
+  album: 'Álbum',
+  single: 'Single',
+  compilation: 'Compilación',
+};
+
+function formatAlbumDuration(ms) {
+  const totalMinutes = Math.round(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
 function AlbumPage() {
   const { id } = useParams();
   const [retryKey, setRetryKey] = useState(0);
@@ -44,17 +57,30 @@ function AlbumPage() {
     }
   }
 
-  function handlePlayTrack(track) {
-    if (!album) return;
-    const trackConAlbum = {
+  function enrichTrack(track) {
+    return {
       ...track,
       album: { images: album.images, name: album.name },
     };
+  }
+
+  function handlePlayTrack(track) {
+    if (!album) return;
+    const trackConAlbum = enrichTrack(track);
     playerDispatch({ type: 'SET_TRACK', payload: trackConAlbum });
     playerDispatch({ type: 'PLAY' });
+    favoritesDispatch({ type: 'ADD_TO_RECENT', payload: trackConAlbum });
+  }
+
+  function toggleTrackFavorite(track) {
+    const isTrackFavorite = favorites.some((item) => item.id === track.id);
+    if (isTrackFavorite) {
+      favoritesDispatch({ type: 'REMOVE_FAVORITE', payload: track.id });
+      return;
+    }
     favoritesDispatch({
-      type: 'ADD_TO_RECENT',
-      payload: { id: track.id, name: track.name, imageUrl: album.images?.[0]?.url },
+      type: 'ADD_FAVORITE',
+      payload: { ...enrichTrack(track), subtitle: 'Canción', variant: 'track' },
     });
   }
 
@@ -80,6 +106,9 @@ function AlbumPage() {
   }
 
   const trackItems = album.tracks?.items ?? [];
+  const releaseYear = album.release_date?.slice(0, 4);
+  const albumTypeLabel = ALBUM_TYPE_LABELS[album.album_type] ?? album.album_type;
+  const totalDurationMs = trackItems.reduce((sum, track) => sum + (track.duration_ms ?? 0), 0);
 
   return (
     <div className="animate-rise-in space-y-10 px-5 py-8 md:px-10 md:py-10">
@@ -104,14 +133,20 @@ function AlbumPage() {
           <div className="flex flex-1 flex-col items-center gap-3 sm:items-start">
             <p className="text-xs uppercase tracking-[0.28em] text-primary">Álbum</p>
             <h1 className="text-3xl font-bold md:text-5xl">{album.name}</h1>
-            {mainArtist && (
-              <Link
-                to={`/artists/${mainArtist.id}`}
-                className="text-sm font-semibold text-muted-foreground transition-colors duration-300 hover:text-foreground"
-              >
-                {mainArtist.name}
-              </Link>
-            )}
+            <div className="flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground sm:justify-start">
+              {mainArtist && (
+                <Link
+                  to={`/artists/${mainArtist.id}`}
+                  className="font-semibold transition-colors duration-300 hover:text-foreground"
+                >
+                  {mainArtist.name}
+                </Link>
+              )}
+              {releaseYear && <span>• {releaseYear}</span>}
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-wide">
+                {albumTypeLabel}
+              </span>
+            </div>
 
             <button
               type="button"
@@ -131,7 +166,14 @@ function AlbumPage() {
 
       {/* Canciones */}
       <section className="space-y-5">
-        <h2 className="text-xl font-semibold">Canciones</h2>
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+          <h2 className="text-xl font-semibold">Canciones</h2>
+          {trackItems.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {album.total_tracks} canciones • {formatAlbumDuration(totalDurationMs)}
+            </p>
+          )}
+        </div>
         {trackItems.length > 0 ? (
           <div className="space-y-1">
             {trackItems.map((track, i) => (
@@ -142,6 +184,8 @@ function AlbumPage() {
                 showIndex
                 isPlaying={track.id === currentTrack?.id && playerIsPlaying}
                 onPlay={handlePlayTrack}
+                isFavorite={favorites.some((item) => item.id === track.id)}
+                onToggleFavorite={toggleTrackFavorite}
               />
             ))}
           </div>

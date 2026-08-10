@@ -1,10 +1,15 @@
+import { Link } from 'react-router-dom';
 import { Play } from 'lucide-react';
 
-function FavoriteCard({ item, index = 0 }) {
+function FavoriteCard({ item, index = 0, onPlay }) {
   const isArtist = item.variant === 'artist';
+  const isTrack = item.variant === 'track';
+  const Wrapper = isTrack ? 'div' : Link;
+  const wrapperProps = isTrack ? {} : { to: isArtist ? `/artists/${item.id}` : `/albums/${item.id}` };
 
   return (
-    <article
+    <Wrapper
+      {...wrapperProps}
       className="animate-rise-in group relative flex flex-col rounded-2xl border border-white/10 bg-white/5 p-5 text-center backdrop-blur-lg transition-all duration-500 ease-[var(--ease-silk)] hover:-translate-y-1 hover:border-primary/30 hover:bg-white/[0.08] hover:shadow-[var(--shadow-glow)]"
       style={{ animationDelay: `${Math.min(index, 12) * 60}ms` }}
     >
@@ -26,13 +31,26 @@ function FavoriteCard({ item, index = 0 }) {
             </div>
           )}
         </div>
-        <button
-          type="button"
-          aria-label={`Reproducir ${item.name}`}
-          className="accent-gradient absolute bottom-1 right-1 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full text-primary-foreground opacity-0 shadow-[var(--shadow-glow)] transition-all duration-500 ease-[var(--ease-silk)] group-hover:translate-y-0 group-hover:opacity-100"
-        >
-          <Play className="ml-0.5 h-4 w-4" />
-        </button>
+        {isTrack ? (
+          <button
+            type="button"
+            aria-label={`Reproducir ${item.name}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlay(item);
+            }}
+            className="accent-gradient absolute bottom-1 right-1 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full text-primary-foreground opacity-0 shadow-[var(--shadow-glow)] transition-all duration-500 ease-[var(--ease-silk)] group-hover:translate-y-0 group-hover:opacity-100"
+          >
+            <Play className="ml-0.5 h-4 w-4" />
+          </button>
+        ) : (
+          <span
+            aria-hidden="true"
+            className="accent-gradient absolute bottom-1 right-1 flex h-10 w-10 translate-y-2 items-center justify-center rounded-full text-primary-foreground opacity-0 shadow-[var(--shadow-glow)] transition-all duration-500 ease-[var(--ease-silk)] group-hover:translate-y-0 group-hover:opacity-100"
+          >
+            <Play className="ml-0.5 h-4 w-4" />
+          </span>
+        )}
       </div>
 
       <h3 className="mt-5 line-clamp-1 text-base font-bold">{item.name}</h3>
@@ -41,7 +59,7 @@ function FavoriteCard({ item, index = 0 }) {
           {item.subtitle}
         </p>
       )}
-    </article>
+    </Wrapper>
   );
 }
 

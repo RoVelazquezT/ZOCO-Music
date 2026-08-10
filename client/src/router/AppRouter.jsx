@@ -4,7 +4,6 @@ import Home from '../pages/Home';
 import SearchPage from '../pages/SearchPage';
 import ArtistPage from '../pages/ArtistPage';
 import AlbumPage from '../pages/AlbumPage';
-import FavoritesPage from '../pages/FavoritesPage';
 
 function AppRouter() {
   return (
@@ -15,7 +14,6 @@ function AppRouter() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/artists/:id" element={<ArtistPage />} />
           <Route path="/albums/:id" element={<AlbumPage />} />
-          <Route path="/favorites" element={<FavoritesPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

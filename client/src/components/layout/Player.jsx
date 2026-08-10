@@ -12,13 +12,28 @@ import {
 
 import { cn } from '../../lib/utils';
 import { usePlayer } from '../../features/player/PlayerContext';
+import { useFavorites } from '../../features/favorites/FavoritesContext';
 import { formatTime } from '../../utils/formatTime';
 
 function Player() {
   const { currentTrack, isPlaying, progress, dispatch } = usePlayer();
+  const { favorites, dispatch: favoritesDispatch } = useFavorites();
   const [volume, setVolume] = useState(70);
 
   if (!currentTrack) return null;
+
+  const isFavorite = favorites.some((item) => item.id === currentTrack.id);
+
+  function toggleFavorite() {
+    if (isFavorite) {
+      favoritesDispatch({ type: 'REMOVE_FAVORITE', payload: currentTrack.id });
+    } else {
+      favoritesDispatch({
+        type: 'ADD_FAVORITE',
+        payload: { ...currentTrack, subtitle: 'Canción', variant: 'track' },
+      });
+    }
+  }
 
   const artistName = currentTrack.artists?.[0]?.name;
   const artworkUrl = currentTrack.album?.images?.[2]?.url ?? currentTrack.album?.images?.[0]?.url;
@@ -47,10 +62,16 @@ function Player() {
             <p className="truncate text-xs text-muted-foreground">{artistName}</p>
           </div>
           <button
-            aria-label="Guardar en favoritos"
-            className="ml-1 hidden text-muted-foreground transition-colors duration-300 ease-[var(--ease-silk)] hover:text-primary sm:block"
+            type="button"
+            aria-label={isFavorite ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+            aria-pressed={isFavorite}
+            onClick={toggleFavorite}
+            className={cn(
+              'ml-1 hidden text-muted-foreground transition-colors duration-300 ease-[var(--ease-silk)] hover:text-primary sm:block',
+              isFavorite && 'text-primary'
+            )}
           >
-            <Heart className="h-4 w-4" />
+            <Heart className={cn('h-4 w-4', isFavorite && 'fill-primary')} />
           </button>
         </div>
 

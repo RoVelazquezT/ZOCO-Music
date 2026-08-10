@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFetch } from '../hooks/useFetch';
 import { useFavorites } from '../features/favorites/FavoritesContext';
+import { usePlayer } from '../features/player/PlayerContext';
 import { get } from '../services/api';
 import Skeleton from '../components/ui/Skeleton';
 import ErrorState from '../components/ui/ErrorState';
@@ -19,7 +20,22 @@ function Home() {
   const saludo = useMemo(() => greeting(), []);
   const [retryKey, setRetryKey] = useState(0);
   const { status, data, error } = useFetch(() => get('/home'), [retryKey]);
-  const { favorites, recentlyPlayed } = useFavorites();
+  const { favorites, recentlyPlayed, dispatch: favoritesDispatch } = useFavorites();
+  const { dispatch: playerDispatch } = usePlayer();
+
+  function handlePlayRecent(track) {
+    playerDispatch({ type: 'SET_TRACK', payload: track });
+    playerDispatch({ type: 'PLAY' });
+    favoritesDispatch({ type: 'ADD_TO_RECENT', payload: track });
+  }
+
+  function handlePlayFavorite(item) {
+    const track = favorites.find((favorite) => favorite.id === item.id);
+    if (!track) return;
+    playerDispatch({ type: 'SET_TRACK', payload: track });
+    playerDispatch({ type: 'PLAY' });
+    favoritesDispatch({ type: 'ADD_TO_RECENT', payload: track });
+  }
 
   const hasFavorites = favorites.length > 0;
   const isLoadingCurated = !hasFavorites && (status === 'idle' || status === 'loading');
@@ -29,9 +45,9 @@ function Home() {
     ? favorites.map((item) => ({
         id: item.id,
         name: item.name,
-        imageUrl: item.imageUrl,
-        subtitle: item.type === 'album' ? 'Álbum' : 'Artista',
-        variant: item.type === 'album' ? 'album' : 'artist',
+        imageUrl: item.imageUrl ?? item.album?.images?.[0]?.url,
+        subtitle: item.subtitle,
+        variant: item.variant,
       }))
     : (data?.curated ?? []).slice(0, 6).map((artist) => ({
         id: artist.id,
@@ -64,7 +80,7 @@ function Home() {
         {recentlyPlayed.length > 0 ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {recentlyPlayed.map((item, i) => (
-              <RecentCard key={item.id} item={item} index={i} />
+              <RecentCard key={item.id} item={item} index={i} onPlay={handlePlayRecent} />
             ))}
           </div>
         ) : (
@@ -93,7 +109,7 @@ function Home() {
         {!isLoadingCurated && !isCuratedError && (
           <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {favoriteItems.map((item, i) => (
-              <FavoriteCard key={item.id} item={item} index={i} />
+              <FavoriteCard key={item.id} item={item} index={i} onPlay={handlePlayFavorite} />
             ))}
           </div>
         )}
