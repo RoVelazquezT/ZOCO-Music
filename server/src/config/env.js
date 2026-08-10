@@ -9,6 +9,7 @@ export const env = {
   spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET,
 };
 
+
 if (!env.spotifyClientId || !env.spotifyClientSecret) {
   console.error('Faltan las variables SPOTIFY_CLIENT_ID o SPOTIFY_CLIENT_SECRET en el .env');
   process.exit(1);
