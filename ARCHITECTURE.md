@@ -34,9 +34,7 @@ técnicas y el plan de implementación antes de empezar a escribir código.
   credenciales sensibles.
 
 **Por qué esta arquitectura y no otra:**
-- Un monolito con renderizado en servidor (SSR) sería sobre-ingeniería: no hay SEO
-  que optimizar ni contenido que deba indexarse, y agrega complejidad de
-  hidratación innecesaria para el alcance de la prueba.
+- Un monolito con renderizado en servidor (SSR) sería sobre-ingeniería
 - Microservicios no tienen sentido: hay un solo dominio (música) y un solo consumidor
   (el cliente propio).
 - Un cliente 100% estático sin backend no es viable porque el Client Credentials
@@ -60,11 +58,6 @@ técnicas y el plan de implementación antes de empezar a escribir código.
     │ favoritos +   │
     │ historial     │
     └──────────────┘
-```
-
-El cliente **nunca** se comunica directamente con Spotify. Todas las peticiones pasan
-por el backend propio, que agrega, cachea el token y devuelve solo los datos que el
-cliente necesita.
 
 ---
 
@@ -151,9 +144,9 @@ carpetas transversales.
 
 | Decisión | Elección | Alternativas descartadas | Por qué |
 |---|---|---|---|
-| Framework frontend | React + Vite | Next.js | No hay necesidad de SSR/SSG; Vite da un dev server más simple y rápido para una SPA pura. |
-| Estado global | Context API + `useReducer` | Redux Toolkit, Zustand | Solo hay dos piezas de estado realmente globales (player, favoritos). Usar Redux sería una herramienta desproporcionada al problema. |
-| Estilos | Tailwind CSS | CSS Modules, styled-components | Ya conocido por el desarrollador; permite iterar rápido en responsive sin salir del componente. |
+| Framework frontend | React + Vite | Next.js | Vite da un dev server más simple y rápido para una SPA pura. |
+| Estado global | Context API + `useReducer` | Solo hay dos piezas de estado realmente globales (player, favoritos).
+| Estilos | Tailwind CSS | CSS Modules | 
 | Routing | React Router | — | Estándar de facto para SPA en React; cumple el requisito de navegación sin recarga. |
 | Backend | Node + Express | Serverless functions | Un servidor propio simple es más fácil de correr y depurar localmente durante el desarrollo, y no ata el proyecto a un proveedor específico. |
 | Autenticación con Spotify | Client Credentials Flow (server-side) | Authorization Code Flow | El proyecto no requiere datos de un usuario de Spotify logueado (playlists propias, etc.), solo catálogo público. Client Credentials es más simple y suficiente. |
@@ -194,7 +187,7 @@ predecible y fácil de explicar.
 
 ---
 
-## 8. Mejoras de iniciativa (no pedidas explícitamente)
+## 8. Mejoras de iniciativa 
 
 - Debounce en el buscador para reducir llamadas innecesarias.
 - Skeleton loaders en lugar de spinners genéricos.
